@@ -1,0 +1,25 @@
+api:                        # The application api configuration
+  address: "localhost:3000" # The application listen address
+
+database:                 # The application database configurations
+  provider: "sqlite"      # The database provider
+  dsn: "file:database.db" # The database connection dsn
+
+backends:                         # The backends configurations
+  - name: "ping-backend"          # The backend name
+    host: "http://localhost:8080" # The backend host
+    scopes:                       # (Optional) The authentication scopes required for every route in this backend
+      - "ping-backend-scope"
+    headers: # (Optional) The headers to be included in the request for every route in this backend
+      Authorization: "Bearer foobar"
+      X-Example-Header-backend: "example backend header"
+    routes:                     # The backend routes
+      - method: "GET"           # The route method
+        backendPath: "/ping"    # The absolute path on the backend backend (your application)
+        gatekeeperPath: "/ping" # The absolute path that will be exposed by the api-gatekeeper
+        timeoutSeconds: 30      # (Optional) The timeout in seconds, set to 0 to dont timeout
+        isPublic: false         # (Optional) If this route is public
+        scopes:                 # (Optional) The authentication scopes required for this route, they will be added with the backend scopes
+          - "ping-backend.get-ping-scope"
+        headers: # (Optional) The headers to be included in the request for this route
+          X-Example-Header-Route: "example route header"
