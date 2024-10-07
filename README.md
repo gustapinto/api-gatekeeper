@@ -14,10 +14,7 @@ The API Gatekeeper is a application that sits between the public web requests an
 
 ## Configuration
 
-The configuration is done by a yaml file. This file path must be provided by the `-config=<path to yaml>` when running the application
-
-### Example
-
+The configuration is done by a yaml file. This file path must be provided by the `-config=<path to yaml>` when running the application. The configuration properties are:
 ```yaml
 api:                        # The application api configuration
   address: "localhost:3000" # The application listen address
