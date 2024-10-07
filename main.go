@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gustapinto/api-gatekeeper/modules/gateway"
+	"github.com/gustapinto/api-gatekeeper/modules/user"
 )
 
 func main() {
@@ -33,7 +34,17 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	gateway.RegisterModule(mux, logger, config.Backends)
+	userRepository, err := user.GetRepository(config.Database)
+	if err != nil {
+		logger.Error(err.Error())
+		return
+	}
+
+	userService := &user.Service{
+		Repository: userRepository,
+	}
+
+	gateway.RegisterModule(mux, logger, userService, config.Backends)
 
 	address := config.API.Address
 	listener, err := net.Listen("tcp", address)

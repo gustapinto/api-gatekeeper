@@ -1,35 +1,10 @@
 package user
 
 import (
+	"database/sql"
+	"fmt"
 	"log/slog"
-	"time"
 )
-
-type User struct {
-	ID        string
-	Login     string
-	Password  string
-	Extras    *map[string]any
-	Scopes    *[]string
-	CreatedAt time.Time
-	UpdatedAt *time.Time
-	DeletedAt *time.Time
-}
-
-type CreateUserParams struct {
-	Login    string
-	Password string
-	Extras   *map[string]any
-	Scopes   *[]string
-}
-
-type UpdateUserParams struct {
-	ID       string
-	Login    string
-	Password string
-	Extras   *map[string]any
-	Scopes   *[]string
-}
 
 type Repository interface {
 	Migrate(*slog.Logger) error
@@ -45,4 +20,24 @@ type Repository interface {
 	Update(UpdateUserParams) (*User, error)
 
 	Delete(string) error
+}
+
+func GetRepository(config Database) (Repository, error) {
+	switch config.Provider {
+	case "postgres":
+		db, err := sql.Open("postgres", config.DSN)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := db.Ping(); err != nil {
+			return nil, err
+		}
+
+		return &postgresRepository{
+			DB: db,
+		}, nil
+	default:
+		return nil, fmt.Errorf("provider %s is not supported", config.Provider)
+	}
 }
