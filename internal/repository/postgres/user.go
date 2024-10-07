@@ -1,18 +1,17 @@
-package user
+package postgres
 
 import (
 	"database/sql"
 	"encoding/json"
-	"log/slog"
+
+	"github.com/gustapinto/api-gatekeeper/internal/model"
 )
 
-type postgresRepository struct {
+type User struct {
 	DB *sql.DB
 }
 
-var _ Repository = (*postgresRepository)(nil)
-
-func (p *postgresRepository) Create(params CreateUserParams) (*User, error) {
+func (p User) Create(params model.CreateUserParams) (*model.User, error) {
 	query := `
 	INSERT INTO "gatekeeper_user" (
 		id,
@@ -56,7 +55,7 @@ func (p *postgresRepository) Create(params CreateUserParams) (*User, error) {
 	return p.GetByID(id)
 }
 
-func (p *postgresRepository) Delete(id string) error {
+func (p User) Delete(id string) error {
 	query := `
 	DELETE FROM
 		"gatekeeper_user"
@@ -68,7 +67,7 @@ func (p *postgresRepository) Delete(id string) error {
 	return err
 }
 
-func (p *postgresRepository) GetAll() ([]User, error) {
+func (p User) GetAll() ([]model.User, error) {
 	query := `
 	SELECT
 		id,
@@ -89,7 +88,7 @@ func (p *postgresRepository) GetAll() ([]User, error) {
 	}
 	defer rows.Close()
 
-	users := make([]User, 0)
+	users := make([]model.User, 0)
 	for rows.Next() {
 		user, err := p.scanRowIntoUser(rows)
 		if err != nil {
@@ -106,8 +105,8 @@ type RowScanner interface {
 	Scan(...any) error
 }
 
-func (postgresRepository) scanRowIntoUser(row RowScanner) (*User, error) {
-	var user User
+func (User) scanRowIntoUser(row RowScanner) (*model.User, error) {
+	var user model.User
 	var extrasJson, scopesJson []byte
 
 	err := row.Scan(
@@ -134,7 +133,7 @@ func (postgresRepository) scanRowIntoUser(row RowScanner) (*User, error) {
 	return &user, nil
 }
 
-func (p *postgresRepository) GetByID(id string) (*User, error) {
+func (p User) GetByID(id string) (*model.User, error) {
 	query := `
 	SELECT
 		id,
@@ -159,7 +158,7 @@ func (p *postgresRepository) GetByID(id string) (*User, error) {
 	return p.scanRowIntoUser(row)
 }
 
-func (p *postgresRepository) GetByLogin(login string) (*User, error) {
+func (p User) GetByLogin(login string) (*model.User, error) {
 	query := `
 	SELECT
 		id,
@@ -184,25 +183,7 @@ func (p *postgresRepository) GetByLogin(login string) (*User, error) {
 	return p.scanRowIntoUser(row)
 }
 
-func (p *postgresRepository) Migrate(*slog.Logger) error {
-	query := `
-	CREATE TABLE IF NOT EXISTS "gatekeeper_user" (
-		id VARCHAR(36) UUID,
-		created_at TIMESTAMP NOT NULL,
-		updated_at TIMESTAMP,
-		deleted_at TIMESTAMP,
-		login VARCHAR(255) UNIQUE NOT NULL,
-		password VARCHAR(255) NOT NULL,
-		extras JSONB,
-		scopes JSONB
-	);
-	`
-
-	_, err := p.DB.Exec(query)
-	return err
-}
-
-func (p *postgresRepository) Update(params UpdateUserParams) (*User, error) {
+func (p User) Update(params model.UpdateUserParams) (*model.User, error) {
 	query := `
 	UPDATE
 		"gatekeeper_user"

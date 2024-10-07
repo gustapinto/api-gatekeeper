@@ -1,9 +1,9 @@
 api:                        # The application api configuration
   address: "localhost:3000" # The application listen address
 
-database:                                                                         # The application database configurations
-  provider: "postgres"                                                            # The database provider
-  dsn: "postgresql://api-gatekeeper:api-gatekeeper@localhost:5434/api-gatekeeper" # The database connection dsn
+database:                                                                                        # The application database configurations
+  provider: "postgres"                                                                           # The database provider
+  dsn: "postgresql://api-gatekeeper:api-gatekeeper@postgres:5432/api-gatekeeper?sslmode=disable" # The database connection dsn
 
 backends:                         # The backends configurations
   - name: "ping-backend"          # The backend name

@@ -1,4 +1,4 @@
-package user
+package service
 
 import (
 	"encoding/base64"
@@ -7,43 +7,58 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/gustapinto/api-gatekeeper/internal/model"
 	"golang.org/x/crypto/bcrypt"
 )
 
-type Service struct {
-	Repository Repository
+type UserRepository interface {
+	GetAll() ([]model.User, error)
+
+	GetByID(string) (*model.User, error)
+
+	GetByLogin(string) (*model.User, error)
+
+	Create(model.CreateUserParams) (*model.User, error)
+
+	Update(model.UpdateUserParams) (*model.User, error)
+
+	Delete(string) error
 }
 
-func (s Service) AuthenticateToken(token string) (User, error) {
+type User struct {
+	Repository UserRepository
+}
+
+func (s User) AuthenticateToken(token string) (model.User, error) {
 	if token == "" {
-		return User{}, errors.New("missing Authorization token")
+		return model.User{}, errors.New("missing Authorization token")
 	}
 
 	decodedToken, err := base64.StdEncoding.DecodeString(token)
 	if err != nil {
-		return User{}, err
+		return model.User{}, err
 	}
 
 	data := strings.SplitAfter(string(decodedToken), ":")
 	if len(data) < 2 {
-		return User{}, err
+		return model.User{}, err
 	}
 	login := data[0]
 	password := data[1]
 
 	user, err := s.Repository.GetByLogin(login)
 	if err != nil {
-		return User{}, err
+		return model.User{}, err
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return User{}, err
+		return model.User{}, err
 	}
 
 	return *user, nil
 }
 
-func (s Service) Authorize(user User, requiredScopes []string) error {
+func (s User) Authorize(user model.User, requiredScopes []string) error {
 	for _, requiredScope := range requiredScopes {
 		if !slices.Contains(*user.Scopes, requiredScope) {
 			return fmt.Errorf("missing %s scope", requiredScope)
@@ -53,25 +68,25 @@ func (s Service) Authorize(user User, requiredScopes []string) error {
 	return nil
 }
 
-func (s Service) Create(params CreateUserParams) (User, error) {
+func (s User) Create(params model.CreateUserParams) (model.User, error) {
 	if strings.TrimSpace(params.Login) == "" {
-		return User{}, errors.New("login parameter must be present and must not be blank")
+		return model.User{}, errors.New("login parameter must be present and must not be blank")
 	}
 
 	if strings.TrimSpace(params.Password) == "" {
-		return User{}, errors.New("password parameter must be present and must not be blank")
+		return model.User{}, errors.New("password parameter must be present and must not be blank")
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(params.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return User{}, errors.New("failed to encode user password")
+		return model.User{}, errors.New("failed to encode user password")
 	}
 
 	params.Password = string(hashedPassword)
 
 	user, err := s.Repository.Create(params)
 	if err != nil {
-		return User{}, err
+		return model.User{}, err
 	}
 
 	user.Password = ""
@@ -79,19 +94,19 @@ func (s Service) Create(params CreateUserParams) (User, error) {
 	return *user, err
 }
 
-func (s Service) Update(params UpdateUserParams) (User, error) {
+func (s User) Update(params model.UpdateUserParams) (model.User, error) {
 	if strings.TrimSpace(params.ID) == "" {
-		return User{}, errors.New("id parameter must be present and must not be blank")
+		return model.User{}, errors.New("id parameter must be present and must not be blank")
 	}
 
 	if strings.TrimSpace(params.Login) == "" {
-		return User{}, errors.New("login parameter must be present and must not be blank")
+		return model.User{}, errors.New("login parameter must be present and must not be blank")
 	}
 
 	if params.Password != nil && *params.Password != "" {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(*params.Password), bcrypt.DefaultCost)
 		if err != nil {
-			return User{}, errors.New("failed to encode user password")
+			return model.User{}, errors.New("failed to encode user password")
 		}
 
 		*params.Password = string(hashedPassword)
@@ -99,7 +114,7 @@ func (s Service) Update(params UpdateUserParams) (User, error) {
 
 	user, err := s.Repository.Update(params)
 	if err != nil {
-		return User{}, err
+		return model.User{}, err
 	}
 
 	user.Password = ""
@@ -107,7 +122,7 @@ func (s Service) Update(params UpdateUserParams) (User, error) {
 	return *user, nil
 }
 
-func (s Service) Delete(id string) error {
+func (s User) Delete(id string) error {
 	if strings.TrimSpace(id) == "" {
 		return errors.New("id parameter must be present and must not be blank")
 	}

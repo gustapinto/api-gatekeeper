@@ -1,12 +1,16 @@
-package gateway
+package service
 
 import (
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/gustapinto/api-gatekeeper/internal/config"
 )
 
-func doRequestToBackendRoute(userId string, service Backend, route Route, body io.ReadCloser) (*http.Response, error) {
+type Backend struct{}
+
+func (Backend) DoRequestToBackendRoute(userId string, service config.Backend, route config.Route, body io.ReadCloser) (*http.Response, error) {
 	client := http.Client{
 		Timeout: time.Duration(route.TimeoutSeconds) * time.Second,
 	}
