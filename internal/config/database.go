@@ -13,7 +13,6 @@ type Database struct {
 }
 
 var ValidProviders = []string{
-	"sqlite",
 	"postgres",
 }
 
