@@ -108,3 +108,7 @@ func WriteOk(w http.ResponseWriter, data any) {
 	w.WriteHeader(http.StatusOK)
 	w.Write(dataJson)
 }
+
+func WriteNoContent(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusNoContent)
+}

@@ -134,3 +134,20 @@ func (s User) Delete(id string) error {
 
 	return nil
 }
+
+func (u User) GetByID(id string) (model.User, error) {
+	if strings.TrimSpace(id) == "" {
+		return model.User{}, errors.New("badparams: id parameter must be present and must not be blank")
+	}
+
+	user, err := u.Repository.GetByID(id)
+	if err != nil {
+		return model.User{}, err
+	}
+
+	return *user, nil
+}
+
+func (u User) GetAll() ([]model.User, error) {
+	return u.Repository.GetAll()
+}

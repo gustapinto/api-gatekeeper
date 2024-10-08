@@ -6,7 +6,6 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/gustapinto/api-gatekeeper/internal/config"
@@ -14,7 +13,6 @@ import (
 	"github.com/gustapinto/api-gatekeeper/internal/middleware"
 	"github.com/gustapinto/api-gatekeeper/internal/repository/postgres"
 	"github.com/gustapinto/api-gatekeeper/internal/service"
-	httputil "github.com/gustapinto/api-gatekeeper/pkg/http_util"
 )
 
 func main() {
@@ -76,6 +74,26 @@ func main() {
 				GatekeeperPath: "/v1/gatekeeper/users",
 				HandlerFunc:    userHandler.Create,
 			},
+			{
+				Method:         "GET",
+				GatekeeperPath: "/v1/gatekeeper/users",
+				HandlerFunc:    userHandler.GetAll,
+			},
+			{
+				Method:         "PUT",
+				GatekeeperPath: "/v1/gatekeeper/users/{userId}",
+				HandlerFunc:    userHandler.Update,
+			},
+			{
+				Method:         "DELETE",
+				GatekeeperPath: "/v1/gatekeeper/users/{userId}",
+				HandlerFunc:    userHandler.Delete,
+			},
+			{
+				Method:         "GET",
+				GatekeeperPath: "/v1/gatekeeper/users/{userId}",
+				HandlerFunc:    userHandler.GetByID,
+			},
 		},
 	}
 
@@ -92,18 +110,13 @@ func main() {
 		for _, route := range backend.Routes {
 			routeLogger := backendLogger.With("route", route.Name())
 
-			if _, exists := alreadyRegisteredRoutes[route.GatekeeperPath]; exists {
+			if _, exists := alreadyRegisteredRoutes[route.Pattern()]; exists {
 				routeLogger.Warn("Route already registered, skipping")
 				return
 			}
 
-			mux.HandleFunc(route.GatekeeperPath, func(w http.ResponseWriter, r *http.Request) {
+			mux.HandleFunc(route.Pattern(), func(w http.ResponseWriter, r *http.Request) {
 				start := time.Now()
-
-				if r.Method != strings.ToUpper(route.Method) {
-					httputil.WriteMethodNotAllowed(w)
-					return
-				}
 
 				if route.HandlerFunc != nil {
 					basicAuth.Guard(w, r, basicAuth.GetAllScopes(backend, route), route.HandlerFunc)
@@ -117,7 +130,7 @@ func main() {
 
 			routeLogger.Info("Route registered", "method", route.Method, "path", route.GatekeeperPath)
 
-			alreadyRegisteredRoutes[route.GatekeeperPath] = true
+			alreadyRegisteredRoutes[route.Pattern()] = true
 		}
 	}
 

@@ -62,3 +62,7 @@ func (r *Route) ValidateAndNormalize() error {
 
 	return nil
 }
+
+func (r *Route) Pattern() string {
+	return fmt.Sprintf("%s %s", strings.ToUpper(r.Method), r.GatekeeperPath)
+}
