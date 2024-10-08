@@ -3,7 +3,9 @@ package postgres
 import (
 	"database/sql"
 	"errors"
+	"strings"
 
+	"github.com/gustapinto/api-gatekeeper/internal/model"
 	_ "github.com/lib/pq"
 )
 
@@ -22,10 +24,10 @@ func (Conn) OpenDatabaseConnection(dsn string) (*sql.DB, error) {
 	return db, nil
 }
 
-func (Conn) InitializeDatabase(db *sql.DB) error {
+func (Conn) InitializeDatabase(db *sql.DB, applicationUserLogin, applicationUserPassword string) error {
 	query := `
 	CREATE TABLE IF NOT EXISTS "gatekeeper_user" (
-		id VARCHAR(36) UUID,
+		id UUID PRIMARY KEY,
 		created_at TIMESTAMP NOT NULL,
 		updated_at TIMESTAMP,
 		deleted_at TIMESTAMP,
@@ -37,5 +39,28 @@ func (Conn) InitializeDatabase(db *sql.DB) error {
 	`
 
 	_, err := db.Exec(query)
-	return err
+	if err != nil {
+		return err
+	}
+
+	repository := User{
+		DB: db,
+	}
+	_, err = repository.Create(model.CreateUserParams{
+		Login:    applicationUserLogin,
+		Password: applicationUserPassword,
+		Extras:   &map[string]any{},
+		Scopes: &[]string{
+			"api-gatekeeper.manage-users",
+		},
+	})
+	if err != nil {
+		if strings.Contains(err.Error(), "value violates unique constraint") {
+			return nil
+		}
+
+		return err
+	}
+
+	return nil
 }

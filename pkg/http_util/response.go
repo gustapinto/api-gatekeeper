@@ -73,3 +73,38 @@ func WriteForbidden(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusForbidden)
 	w.Write(errorJson)
 }
+
+func WriteUnprocessableEntity(w http.ResponseWriter, err error) {
+	errorJson, e := json.Marshal(ErrorResponse{
+		Message: err.Error(),
+	})
+	if e != nil {
+		errorJson = []byte("{}")
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusUnprocessableEntity)
+	w.Write(errorJson)
+}
+
+func WriteCreated(w http.ResponseWriter, data any) {
+	dataJson, e := json.Marshal(data)
+	if e != nil {
+		dataJson = []byte("{}")
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	w.Write(dataJson)
+}
+
+func WriteOk(w http.ResponseWriter, data any) {
+	dataJson, e := json.Marshal(data)
+	if e != nil {
+		dataJson = []byte("{}")
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(dataJson)
+}

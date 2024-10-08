@@ -18,6 +18,9 @@ The configuration is done by a yaml file. This file path must be provided by the
 ```yaml
 api:                        # The application api configuration
   address: "localhost:3000" # The application listen address
+  user:                     # The application admin user, it will be persisted on the first application database initialization
+    login: admin            # The admin login
+    password: admin         # The admin password, in a production environment this must be secured
 
 database:                                                                                        # The application database configurations
   provider: "postgres"                                                                           # The database provider
@@ -41,6 +44,7 @@ backends:                         # The backends configurations
           - "ping-backend.get-ping-scope"
         headers: # (Optional) The headers to be included in the request for this route
           X-Example-Header-Route: "example route header"
+
 ```
 
 ## FAQ

@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 )
 
@@ -14,6 +15,7 @@ type Route struct {
 	IsPublic       bool              `yaml:"isPublic"`
 	Scopes         []string          `yaml:"scopes"`
 	Headers        map[string]string `yaml:"headers"`
+	HandlerFunc    http.HandlerFunc
 }
 
 func (r Route) Name() string {
@@ -21,10 +23,6 @@ func (r Route) Name() string {
 	routeName = strings.ReplaceAll(routeName, "--", "-")
 
 	return routeName
-}
-
-func (r Route) QualifiedName(qualifier string) string {
-	return fmt.Sprintf("%s.%s", strings.ToLower(qualifier), r.Name())
 }
 
 func (r Route) Validate() error {

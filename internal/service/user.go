@@ -31,7 +31,7 @@ type User struct {
 
 func (s User) AuthenticateToken(token string) (model.User, error) {
 	if token == "" {
-		return model.User{}, errors.New("missing Authorization token")
+		return model.User{}, errors.New("badparams: missing Authorization token")
 	}
 
 	decodedToken, err := base64.StdEncoding.DecodeString(token)
@@ -70,16 +70,16 @@ func (s User) Authorize(user model.User, requiredScopes []string) error {
 
 func (s User) Create(params model.CreateUserParams) (model.User, error) {
 	if strings.TrimSpace(params.Login) == "" {
-		return model.User{}, errors.New("login parameter must be present and must not be blank")
+		return model.User{}, errors.New("badparams: login parameter must be present and must not be blank")
 	}
 
 	if strings.TrimSpace(params.Password) == "" {
-		return model.User{}, errors.New("password parameter must be present and must not be blank")
+		return model.User{}, errors.New("badparams: password parameter must be present and must not be blank")
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(params.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return model.User{}, errors.New("failed to encode user password")
+		return model.User{}, errors.New("badparams: failed to encode user password")
 	}
 
 	params.Password = string(hashedPassword)
@@ -96,17 +96,17 @@ func (s User) Create(params model.CreateUserParams) (model.User, error) {
 
 func (s User) Update(params model.UpdateUserParams) (model.User, error) {
 	if strings.TrimSpace(params.ID) == "" {
-		return model.User{}, errors.New("id parameter must be present and must not be blank")
+		return model.User{}, errors.New("badparams: id parameter must be present and must not be blank")
 	}
 
 	if strings.TrimSpace(params.Login) == "" {
-		return model.User{}, errors.New("login parameter must be present and must not be blank")
+		return model.User{}, errors.New("badparams: login parameter must be present and must not be blank")
 	}
 
 	if params.Password != nil && *params.Password != "" {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(*params.Password), bcrypt.DefaultCost)
 		if err != nil {
-			return model.User{}, errors.New("failed to encode user password")
+			return model.User{}, errors.New("badparams: failed to encode user password")
 		}
 
 		*params.Password = string(hashedPassword)
@@ -124,7 +124,7 @@ func (s User) Update(params model.UpdateUserParams) (model.User, error) {
 
 func (s User) Delete(id string) error {
 	if strings.TrimSpace(id) == "" {
-		return errors.New("id parameter must be present and must not be blank")
+		return errors.New("badparams: id parameter must be present and must not be blank")
 	}
 
 	err := s.Repository.Delete(id)

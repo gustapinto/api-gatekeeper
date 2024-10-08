@@ -1,5 +1,8 @@
 api:                        # The application api configuration
   address: "localhost:3000" # The application listen address
+  user:                     # The application user, it will be persisted on the application startup
+    login: admin            # The application user login, in a production environment this must be secured
+    password: admin         # The application user password, in a production environment this must be secured
 
 database:                                                                                        # The application database configurations
   provider: "postgres"                                                                           # The database provider
