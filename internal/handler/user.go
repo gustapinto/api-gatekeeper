@@ -12,7 +12,13 @@ import (
 )
 
 type User struct {
-	Service service.User
+	userService service.User
+}
+
+func NewUser(userService service.User) User {
+	return User{
+		userService: userService,
+	}
 }
 
 func (u User) Create(w http.ResponseWriter, r *http.Request) {
@@ -22,7 +28,7 @@ func (u User) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := u.Service.Create(req)
+	user, err := u.userService.Create(req)
 	if err != nil {
 		if strings.Contains(err.Error(), "badparams:") {
 			httputil.WriteBadRequest(w, err)
@@ -45,7 +51,7 @@ func (u User) Update(w http.ResponseWriter, r *http.Request) {
 
 	req.ID = r.PathValue("userId")
 
-	user, err := u.Service.Update(req)
+	user, err := u.userService.Update(req)
 	if err != nil {
 		if strings.Contains(err.Error(), "badparams:") {
 			httputil.WriteBadRequest(w, err)
@@ -62,7 +68,7 @@ func (u User) Update(w http.ResponseWriter, r *http.Request) {
 func (u User) Delete(w http.ResponseWriter, r *http.Request) {
 	userId := r.PathValue("userId")
 
-	if err := u.Service.Delete(userId); err != nil {
+	if err := u.userService.Delete(userId); err != nil {
 		if strings.Contains(err.Error(), "badparams:") {
 			httputil.WriteBadRequest(w, err)
 			return
@@ -78,7 +84,7 @@ func (u User) Delete(w http.ResponseWriter, r *http.Request) {
 func (u User) GetByID(w http.ResponseWriter, r *http.Request) {
 	userId := r.PathValue("userId")
 
-	user, err := u.Service.GetByID(userId)
+	user, err := u.userService.GetByID(userId)
 	if err != nil {
 		if strings.Contains(err.Error(), "badparams:") {
 			httputil.WriteBadRequest(w, err)
@@ -93,7 +99,7 @@ func (u User) GetByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u User) GetAll(w http.ResponseWriter, r *http.Request) {
-	user, err := u.Service.GetAll()
+	user, err := u.userService.GetAll()
 	if err != nil {
 		httputil.WriteUnprocessableEntity(w, err)
 		return

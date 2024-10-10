@@ -10,11 +10,17 @@ import (
 	httputil "github.com/gustapinto/api-gatekeeper/pkg/http_util"
 )
 
-type BackendHandler struct {
-	Service service.Backend
+type Backend struct {
+	backendService service.Backend
 }
 
-func (b BackendHandler) HandleBackendRouteRequest(w http.ResponseWriter, r *http.Request, backend config.Backend, route config.Route) {
+func NewBackend(backendService service.Backend) Backend {
+	return Backend{
+		backendService: backendService,
+	}
+}
+
+func (b Backend) HandleBackendRouteRequest(w http.ResponseWriter, r *http.Request, backend config.Backend, route config.Route) {
 	uid := r.Context().Value("userId")
 
 	userId := ""
@@ -27,7 +33,7 @@ func (b BackendHandler) HandleBackendRouteRequest(w http.ResponseWriter, r *http
 		return
 	}
 
-	response, err := b.Service.DoRequestToBackendRoute(userId, backend, route, r.Body)
+	response, err := b.backendService.DoRequestToBackendRoute(userId, backend, route, r.Body)
 	if err != nil {
 		httputil.WriteInternalServerError(w, err)
 		return

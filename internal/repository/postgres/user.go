@@ -8,7 +8,13 @@ import (
 )
 
 type User struct {
-	DB *sql.DB
+	db *sql.DB
+}
+
+func NewUser(db *sql.DB) User {
+	return User{
+		db: db,
+	}
 }
 
 func (p User) Create(params model.CreateUserParams) (*model.User, error) {
@@ -42,7 +48,7 @@ func (p User) Create(params model.CreateUserParams) (*model.User, error) {
 		return nil, err
 	}
 
-	row := p.DB.QueryRow(query, params.Login, params.Password, extrasJson, scopesJson)
+	row := p.db.QueryRow(query, params.Login, params.Password, extrasJson, scopesJson)
 	if row.Err() != nil {
 		return nil, row.Err()
 	}
@@ -63,7 +69,7 @@ func (p User) Delete(id string) error {
 		id = $1
 	`
 
-	_, err := p.DB.Exec(query, id)
+	_, err := p.db.Exec(query, id)
 	return err
 }
 
@@ -82,7 +88,7 @@ func (p User) GetAll() ([]model.User, error) {
 		"gatekeeper_user"
 	`
 
-	rows, err := p.DB.Query(query)
+	rows, err := p.db.Query(query)
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +156,7 @@ func (p User) GetByID(id string) (*model.User, error) {
 		id = $1
 	`
 
-	row := p.DB.QueryRow(query, id)
+	row := p.db.QueryRow(query, id)
 	if row.Err() != nil {
 		return nil, row.Err()
 	}
@@ -175,7 +181,7 @@ func (p User) GetByLogin(login string) (*model.User, error) {
 		login = $1
 	`
 
-	row := p.DB.QueryRow(query, login)
+	row := p.db.QueryRow(query, login)
 	if row.Err() != nil {
 		return nil, row.Err()
 	}
@@ -211,7 +217,7 @@ func (p User) Update(params model.UpdateUserParams) (*model.User, error) {
 		return nil, err
 	}
 
-	_, err = p.DB.Exec(query, params.Login, params.Password, extrasJson, scopesJson, params.ID)
+	_, err = p.db.Exec(query, params.Login, params.Password, extrasJson, scopesJson, params.ID)
 	if err != nil {
 		return nil, err
 	}

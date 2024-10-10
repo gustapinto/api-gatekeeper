@@ -44,7 +44,7 @@ func (Conn) InitializeDatabase(db *sql.DB, applicationUserLogin, applicationUser
 	}
 
 	repository := User{
-		DB: db,
+		db: db,
 	}
 	_, err = repository.Create(model.CreateUserParams{
 		Login:    applicationUserLogin,

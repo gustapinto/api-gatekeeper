@@ -18,7 +18,13 @@ type BasicAuthService interface {
 type BackendRouteHandlerFunc = func(http.ResponseWriter, *http.Request, config.Backend, config.Route)
 
 type BasicAuth struct {
-	Service BasicAuthService
+	basicAuthService BasicAuthService
+}
+
+func NewBasicAuth(basicAuthService BasicAuthService) BasicAuth {
+	return BasicAuth{
+		basicAuthService: basicAuthService,
+	}
 }
 
 func (BasicAuth) GetAllScopes(backend config.Backend, route config.Route) []string {
@@ -35,12 +41,12 @@ func (a BasicAuth) GuardBackendRoute(w http.ResponseWriter, r *http.Request, bac
 		return
 	}
 
-	user, err := a.Service.AuthenticateToken(r.Header.Get("Authorization"))
+	user, err := a.basicAuthService.AuthenticateToken(r.Header.Get("Authorization"))
 	if err != nil {
 		httputil.WriteUnauthorized(w)
 	}
 
-	if err := a.Service.Authorize(user, a.GetAllScopes(backend, route)); err != nil {
+	if err := a.basicAuthService.Authorize(user, a.GetAllScopes(backend, route)); err != nil {
 		httputil.WriteForbidden(w)
 	}
 
@@ -50,12 +56,12 @@ func (a BasicAuth) GuardBackendRoute(w http.ResponseWriter, r *http.Request, bac
 }
 
 func (a BasicAuth) Guard(w http.ResponseWriter, r *http.Request, scopes []string, next http.HandlerFunc) {
-	user, err := a.Service.AuthenticateToken(r.Header.Get("Authorization"))
+	user, err := a.basicAuthService.AuthenticateToken(r.Header.Get("Authorization"))
 	if err != nil {
 		httputil.WriteUnauthorized(w)
 	}
 
-	if err := a.Service.Authorize(user, scopes); err != nil {
+	if err := a.basicAuthService.Authorize(user, scopes); err != nil {
 		httputil.WriteForbidden(w)
 	}
 

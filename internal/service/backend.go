@@ -10,6 +10,10 @@ import (
 
 type Backend struct{}
 
+func NewBackend() Backend {
+	return Backend{}
+}
+
 func (Backend) DoRequestToBackendRoute(userId string, service config.Backend, route config.Route, body io.ReadCloser) (*http.Response, error) {
 	client := http.Client{
 		Timeout: time.Duration(route.TimeoutSeconds) * time.Second,

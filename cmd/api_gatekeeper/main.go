@@ -51,16 +51,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	logger.Info("Initialized database data and application user")
+	logger.Info("Initialized database schema and application user")
 
-	userRepository := postgres.User{DB: db}
-	userService := service.User{Repository: userRepository}
-	userHandler := handler.User{Service: userService}
-	basicAuth := middleware.BasicAuth{Service: userService}
-	backendHandler := handler.BackendHandler{Service: service.Backend{}}
+	userRepository := postgres.NewUser(db)
+	userService := service.NewUser(userRepository)
+	userHandler := handler.NewUser(userService)
+	basicAuth := middleware.NewBasicAuth(userService)
+	backendService := service.NewBackend()
+	backendHandler := handler.NewBackend(backendService)
 
-	backends := cfg.Backends
-	backends = append(backends, config.APIGatekeeperBackend(userHandler))
+	backends := append(cfg.Backends, config.Backend{}.APIGatekeeperBackend(userHandler))
 
 	logger.Info("Created dependencies")
 
@@ -71,13 +71,14 @@ func main() {
 
 		for _, route := range backend.Routes {
 			routeLogger := backendLogger.With("route", route.Name())
+			routePattern := route.Pattern()
 
-			if _, exists := alreadyRegisteredRoutes[route.Pattern()]; exists {
+			if _, exists := alreadyRegisteredRoutes[routePattern]; exists {
 				routeLogger.Warn("Route already registered, skipping")
-				return
+				continue
 			}
 
-			mux.HandleFunc(route.Pattern(), func(w http.ResponseWriter, r *http.Request) {
+			mux.HandleFunc(routePattern, func(w http.ResponseWriter, r *http.Request) {
 				start := time.Now()
 
 				if route.HandlerFunc != nil {
@@ -92,7 +93,7 @@ func main() {
 
 			routeLogger.Info("Route registered", "method", route.Method, "path", route.GatekeeperPath)
 
-			alreadyRegisteredRoutes[route.Pattern()] = true
+			alreadyRegisteredRoutes[routePattern] = true
 		}
 	}
 

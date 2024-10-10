@@ -64,7 +64,7 @@ type apiGatekeeperUserHandler interface {
 	GetAll(http.ResponseWriter, *http.Request)
 }
 
-func APIGatekeeperBackend(userHandler apiGatekeeperUserHandler) Backend {
+func (Backend) APIGatekeeperBackend(userHandler apiGatekeeperUserHandler) Backend {
 	return Backend{
 		Name: "api-gatekeeper",
 		Host: "",

@@ -26,7 +26,13 @@ type UserRepository interface {
 }
 
 type User struct {
-	Repository UserRepository
+	userRepository UserRepository
+}
+
+func NewUser(userRepository UserRepository) User {
+	return User{
+		userRepository: userRepository,
+	}
 }
 
 func (s User) AuthenticateToken(token string) (model.User, error) {
@@ -46,7 +52,7 @@ func (s User) AuthenticateToken(token string) (model.User, error) {
 	login := data[0]
 	password := data[1]
 
-	user, err := s.Repository.GetByLogin(login)
+	user, err := s.userRepository.GetByLogin(login)
 	if err != nil {
 		return model.User{}, err
 	}
@@ -84,7 +90,7 @@ func (s User) Create(params model.CreateUserParams) (model.User, error) {
 
 	params.Password = string(hashedPassword)
 
-	user, err := s.Repository.Create(params)
+	user, err := s.userRepository.Create(params)
 	if err != nil {
 		return model.User{}, err
 	}
@@ -112,7 +118,7 @@ func (s User) Update(params model.UpdateUserParams) (model.User, error) {
 		*params.Password = string(hashedPassword)
 	}
 
-	user, err := s.Repository.Update(params)
+	user, err := s.userRepository.Update(params)
 	if err != nil {
 		return model.User{}, err
 	}
@@ -127,7 +133,7 @@ func (s User) Delete(id string) error {
 		return errors.New("badparams: id parameter must be present and must not be blank")
 	}
 
-	err := s.Repository.Delete(id)
+	err := s.userRepository.Delete(id)
 	if err != nil {
 		return err
 	}
@@ -140,7 +146,7 @@ func (u User) GetByID(id string) (model.User, error) {
 		return model.User{}, errors.New("badparams: id parameter must be present and must not be blank")
 	}
 
-	user, err := u.Repository.GetByID(id)
+	user, err := u.userRepository.GetByID(id)
 	if err != nil {
 		return model.User{}, err
 	}
@@ -149,5 +155,5 @@ func (u User) GetByID(id string) (model.User, error) {
 }
 
 func (u User) GetAll() ([]model.User, error) {
-	return u.Repository.GetAll()
+	return u.userRepository.GetAll()
 }
