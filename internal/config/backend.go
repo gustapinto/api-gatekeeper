@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"net/http"
 	"strings"
 )
 
@@ -49,4 +50,54 @@ func (b *Backend) ValidateAndNormalize() error {
 	}
 
 	return nil
+}
+
+type apiGatekeeperUserHandler interface {
+	Create(http.ResponseWriter, *http.Request)
+
+	Update(http.ResponseWriter, *http.Request)
+
+	Delete(http.ResponseWriter, *http.Request)
+
+	GetByID(http.ResponseWriter, *http.Request)
+
+	GetAll(http.ResponseWriter, *http.Request)
+}
+
+func APIGatekeeperBackend(userHandler apiGatekeeperUserHandler) Backend {
+	return Backend{
+		Name: "api-gatekeeper",
+		Host: "",
+		Scopes: []string{
+			"api-gatekeeper.manage-users",
+		},
+		Headers: nil,
+		Routes: []Route{
+			{
+				Method:         "POST",
+				GatekeeperPath: "/api-gatekeeper/v1/users",
+				HandlerFunc:    userHandler.Create,
+			},
+			{
+				Method:         "GET",
+				GatekeeperPath: "/api-gatekeeper/v1/users",
+				HandlerFunc:    userHandler.GetAll,
+			},
+			{
+				Method:         "PUT",
+				GatekeeperPath: "/api-gatekeeper/v1/users/{userId}",
+				HandlerFunc:    userHandler.Update,
+			},
+			{
+				Method:         "DELETE",
+				GatekeeperPath: "/api-gatekeeper/v1/users/{userId}",
+				HandlerFunc:    userHandler.Delete,
+			},
+			{
+				Method:         "GET",
+				GatekeeperPath: "/api-gatekeeper/v1/users/{userId}",
+				HandlerFunc:    userHandler.GetByID,
+			},
+		},
+	}
 }

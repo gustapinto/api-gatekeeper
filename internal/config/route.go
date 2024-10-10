@@ -38,6 +38,10 @@ func (r Route) Validate() error {
 		return errors.New("config 'route.gatekeeperPath' must be present and not be empty")
 	}
 
+	if strings.HasPrefix(strings.ToLower(r.GatekeeperPath), "/api-gatekeeper/") {
+		return errors.New("config 'route.gatekeeperPath' should not start with /api-gatekeeper, this is a reserved route namespace")
+	}
+
 	return nil
 }
 

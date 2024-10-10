@@ -59,48 +59,10 @@ func main() {
 	basicAuth := middleware.BasicAuth{Service: userService}
 	backendHandler := handler.BackendHandler{Service: service.Backend{}}
 
-	logger.Info("Created dependencies")
-
-	apiGatekeeperBackend := config.Backend{
-		Name: "api-gatekeeper",
-		Host: "",
-		Scopes: []string{
-			"api-gatekeeper.manage-users",
-		},
-		Headers: nil,
-		Routes: []config.Route{
-			{
-				Method:         "POST",
-				GatekeeperPath: "/v1/gatekeeper/users",
-				HandlerFunc:    userHandler.Create,
-			},
-			{
-				Method:         "GET",
-				GatekeeperPath: "/v1/gatekeeper/users",
-				HandlerFunc:    userHandler.GetAll,
-			},
-			{
-				Method:         "PUT",
-				GatekeeperPath: "/v1/gatekeeper/users/{userId}",
-				HandlerFunc:    userHandler.Update,
-			},
-			{
-				Method:         "DELETE",
-				GatekeeperPath: "/v1/gatekeeper/users/{userId}",
-				HandlerFunc:    userHandler.Delete,
-			},
-			{
-				Method:         "GET",
-				GatekeeperPath: "/v1/gatekeeper/users/{userId}",
-				HandlerFunc:    userHandler.GetByID,
-			},
-		},
-	}
-
-	logger.Info("Created api-gatekeeper own backends")
-
 	backends := cfg.Backends
-	backends = append(backends, apiGatekeeperBackend)
+	backends = append(backends, config.APIGatekeeperBackend(userHandler))
+
+	logger.Info("Created dependencies")
 
 	mux := http.NewServeMux()
 	alreadyRegisteredRoutes := make(map[string]bool)
