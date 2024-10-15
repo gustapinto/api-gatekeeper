@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 )
 
@@ -69,4 +70,37 @@ func (r *Route) ValidateAndNormalize() error {
 
 func (r *Route) Pattern() string {
 	return fmt.Sprintf("%s %s", strings.ToUpper(r.Method), r.GatekeeperPath)
+}
+
+var patternVariabelesRegex = regexp.MustCompile(`\{(.*?)\}`)
+
+func (r *Route) PatternVariables() []RouteVariable {
+	variables := patternVariabelesRegex.FindAllString(r.GatekeeperPath, -1)
+	routeVairables := make([]RouteVariable, len(variables))
+
+	for i := range variables {
+		routeVairables[i] = NewRouteVariable(variables[i])
+	}
+
+	return routeVairables
+}
+
+type RouteVariable string
+
+func NewRouteVariable(routeVariable string) RouteVariable {
+	return RouteVariable(routeVariable)
+}
+
+func (r RouteVariable) Name() string {
+	replacer := strings.NewReplacer("{", "", "}", "")
+
+	return replacer.Replace(string(r))
+}
+
+func (r RouteVariable) ReplaceFromPattern(url string, value string) string {
+	if !strings.Contains(url, string(r)) || strings.TrimSpace(value) == "" {
+		return url
+	}
+
+	return strings.ReplaceAll(url, string(r), value)
 }

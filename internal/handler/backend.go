@@ -33,6 +33,13 @@ func (b Backend) HandleBackendRouteRequest(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	for _, variable := range route.PatternVariables() {
+		value := r.PathValue(variable.Name())
+		newPattern := variable.ReplaceFromPattern(route.BackendPath, value)
+
+		route.BackendPath = newPattern
+	}
+
 	response, err := b.backendService.DoRequestToBackendRoute(userId, backend, route, r.Body)
 	if err != nil {
 		httputil.WriteInternalServerError(w, err)

@@ -18,8 +18,8 @@ backends:                         # The backends configurations
       X-Example-Header-backend: "example backend header"
     routes:                     # The backend routes
       - method: "GET"           # The route method
-        backendPath: "/ping"    # The absolute path on the backend backend (your application)
-        gatekeeperPath: "/ping" # The absolute path that will be exposed by the api-gatekeeper
+        backendPath: "/ping"    # The absolute path on your application, path variables are replicated as long as both have the same name
+        gatekeeperPath: "/ping" # The absolute path that will be exposed by the api-gatekeeper, path variables are replicated as long as both have the same name
         timeoutSeconds: 30      # (Optional) The timeout in seconds, set to 0 to dont timeout
         isPublic: false         # (Optional) If this route is public
         scopes:                 # (Optional) The authentication scopes required for this route, they will be added with the backend scopes

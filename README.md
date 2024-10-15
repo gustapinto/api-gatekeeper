@@ -20,7 +20,7 @@ The API Gatekeeper is a application that sits between the public web requests an
   
 ## Usage
 
-1. Download the application binary from the [Releases page](https://github.com/gustapinto/api-gatekeeper/releases)
+1. Download the latest application binary from the [Releases page](https://github.com/gustapinto/api-gatekeeper/releases)
 2. Create a [configuration](https://github.com/gustapinto/api-gatekeeper?tab=readme-ov-file#configuration) file. There is a example on [examples/config.yaml](https://github.com/gustapinto/api-gatekeeper/blob/main/example/config.yaml)
 3. Start the application using the configuration file with the command:
    ```bash
@@ -51,8 +51,8 @@ backends:                         # The backends configurations
       X-Example-Header-backend: "example backend header"
     routes:                     # The backend routes
       - method: "GET"           # The route method
-        backendPath: "/ping"    # The absolute path on the backend backend (your application)
-        gatekeeperPath: "/ping" # The absolute path that will be exposed by the api-gatekeeper
+        backendPath: "/ping"    # The absolute path on your application, path variables are replicated as long as both have the same name
+        gatekeeperPath: "/ping" # The absolute path that will be exposed by the api-gatekeeper, path variables are replicated as long as both have the same name
         timeoutSeconds: 30      # (Optional) The timeout in seconds, set to 0 to dont timeout
         isPublic: false         # (Optional) If this route is public
         scopes:                 # (Optional) The authentication scopes required for this route, they will be added with the backend scopes
