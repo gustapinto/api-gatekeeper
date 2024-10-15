@@ -79,7 +79,6 @@ func (p User) GetAll() ([]model.User, error) {
 		id,
 		created_at,
 		updated_at,
-		deleted_at,
 		login,
 		password,
 		extras,
@@ -119,7 +118,6 @@ func (User) scanRowIntoUser(row RowScanner) (*model.User, error) {
 		&user.ID,
 		&user.CreatedAt,
 		&user.UpdatedAt,
-		&user.DeletedAt,
 		&user.Login,
 		&user.Password,
 		&extrasJson,
@@ -145,7 +143,6 @@ func (p User) GetByID(id string) (*model.User, error) {
 		id,
 		created_at,
 		updated_at,
-		deleted_at,
 		login,
 		password,
 		extras,
@@ -170,7 +167,6 @@ func (p User) GetByLogin(login string) (*model.User, error) {
 		id,
 		created_at,
 		updated_at,
-		deleted_at,
 		login,
 		password,
 		extras,
@@ -196,13 +192,12 @@ func (p User) Update(params model.UpdateUserParams) (*model.User, error) {
 	SET
 		updated_at = CURRENT_TIMESTAMP,
 		login = $1,
-		password = CASE
+		password = (CASE
 			WHEN $2 <> '' THEN $2
 			ELSE password
-		END,
+		END),
 		extras = $3,
 		scopes = $4
-	)
 	WHERE
 		id = $5
 	`

@@ -1,0 +1,56 @@
+@host = http://localhost:3000
+@basicToken = YWRtaW46YWRtaW4=
+
+@userId = {{CreateUser.response.body.id}}
+
+# @name CreateUser
+POST {{host}}/api-gatekeeper/v1/users
+Content-Type: application/json
+Authorization: Basic {{basicToken}}
+
+{
+  "login": "example-login",
+  "password": "example-password",
+  "extras": {
+    "example-property-key": "example-property-value"
+  },
+  "scopes": [
+    "example-scope"
+  ]
+}
+###
+
+# @name UpdateUser
+PUT {{host}}/api-gatekeeper/v1/users/{{userId}}
+Content-Type: application/json
+Authorization: Basic {{basicToken}}
+
+{
+  "login": "example-login-new",
+  "password": "example-password",
+  "extras": {
+    "example-property-key": "example-property-value"
+  },
+  "scopes": [
+    "example-scope"
+  ]
+}
+###
+
+# @name DeleteUser
+DELETE {{host}}/api-gatekeeper/v1/users/{{userId}}
+Content-Type: application/json
+Authorization: Basic {{basicToken}}
+###
+
+# @name GetAllUsers
+GET {{host}}/api-gatekeeper/v1/users
+Content-Type: application/json
+Authorization: Basic {{basicToken}}
+###
+
+# @name GetUserByID
+GET {{host}}/api-gatekeeper/v1/users/{{userId}}
+Content-Type: application/json
+Authorization: Basic {{basicToken}}
+###

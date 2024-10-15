@@ -40,12 +40,16 @@ func (s User) AuthenticateToken(token string) (model.User, error) {
 		return model.User{}, errors.New("badparams: missing Authorization token")
 	}
 
+	if strings.Contains(token, "Basic") {
+		token = strings.TrimSpace(strings.ReplaceAll(token, "Basic", ""))
+	}
+
 	decodedToken, err := base64.StdEncoding.DecodeString(token)
 	if err != nil {
 		return model.User{}, err
 	}
 
-	data := strings.SplitAfter(string(decodedToken), ":")
+	data := strings.Split(string(decodedToken), ":")
 	if len(data) < 2 {
 		return model.User{}, err
 	}

@@ -45,14 +45,6 @@ func main() {
 
 	logger.Info("Connected to database")
 
-	err = postgres.Conn{}.InitializeDatabase(db, cfg.API.User.Login, cfg.API.User.Password)
-	if err != nil {
-		logger.Error(err.Error())
-		os.Exit(1)
-	}
-
-	logger.Info("Initialized database schema and application user")
-
 	userRepository := postgres.NewUser(db)
 	userService := service.NewUser(userRepository)
 	userHandler := handler.NewUser(userService)
@@ -63,6 +55,14 @@ func main() {
 	backends := append(cfg.Backends, config.Backend{}.APIGatekeeperBackend(userHandler))
 
 	logger.Info("Created dependencies")
+
+	err = postgres.Conn{}.InitializeDatabase(db, userService, cfg.API.User.Login, cfg.API.User.Password)
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+
+	logger.Info("Initialized database schema and application user")
 
 	mux := http.NewServeMux()
 	alreadyRegisteredRoutes := make(map[string]bool)

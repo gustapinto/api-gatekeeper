@@ -28,7 +28,7 @@ func NewBasicAuth(basicAuthService BasicAuthService) BasicAuth {
 }
 
 func (BasicAuth) GetAllScopes(backend config.Backend, route config.Route) []string {
-	scopes := make([]string, len(backend.Scopes)+len(route.Scopes))
+	scopes := make([]string, 0)
 	scopes = append(scopes, backend.Scopes...)
 	scopes = append(scopes, route.Scopes...)
 
@@ -44,10 +44,12 @@ func (a BasicAuth) GuardBackendRoute(w http.ResponseWriter, r *http.Request, bac
 	user, err := a.basicAuthService.AuthenticateToken(r.Header.Get("Authorization"))
 	if err != nil {
 		httputil.WriteUnauthorized(w)
+		return
 	}
 
 	if err := a.basicAuthService.Authorize(user, a.GetAllScopes(backend, route)); err != nil {
 		httputil.WriteForbidden(w)
+		return
 	}
 
 	ctx := context.WithValue(r.Context(), "userId", user.ID)
@@ -59,10 +61,12 @@ func (a BasicAuth) Guard(w http.ResponseWriter, r *http.Request, scopes []string
 	user, err := a.basicAuthService.AuthenticateToken(r.Header.Get("Authorization"))
 	if err != nil {
 		httputil.WriteUnauthorized(w)
+		return
 	}
 
 	if err := a.basicAuthService.Authorize(user, scopes); err != nil {
 		httputil.WriteForbidden(w)
+		return
 	}
 
 	ctx := context.WithValue(r.Context(), "userId", user.ID)

@@ -24,7 +24,11 @@ func (Conn) OpenDatabaseConnection(dsn string) (*sql.DB, error) {
 	return db, nil
 }
 
-func (Conn) InitializeDatabase(db *sql.DB, applicationUserLogin, applicationUserPassword string) error {
+type CreateUserService interface {
+	Create(model.CreateUserParams) (model.User, error)
+}
+
+func (Conn) InitializeDatabase(db *sql.DB, createUserService CreateUserService, applicationUserLogin, applicationUserPassword string) error {
 	query := `
 	CREATE TABLE IF NOT EXISTS "gatekeeper_user" (
 		id UUID PRIMARY KEY,
@@ -43,10 +47,7 @@ func (Conn) InitializeDatabase(db *sql.DB, applicationUserLogin, applicationUser
 		return err
 	}
 
-	repository := User{
-		db: db,
-	}
-	_, err = repository.Create(model.CreateUserParams{
+	_, err = createUserService.Create(model.CreateUserParams{
 		Login:    applicationUserLogin,
 		Password: applicationUserPassword,
 		Extras:   &map[string]any{},
