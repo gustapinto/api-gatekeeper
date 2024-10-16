@@ -2,8 +2,25 @@
 
 A simple API and user management gateway.
 
-![](https://raw.githubusercontent.com/gustapinto/api-gatekeeper/main/docs/diagram-dark.drawio.png#gh-dark-mode-only)
-![](https://raw.githubusercontent.com/gustapinto/api-gatekeeper/main/docs/diagram-light.drawio.png#gh-light-mode-only)
+```mermaid
+flowchart LR
+    subgraph Public Network
+    REQ[/Web Requests/]
+    end
+    subgraph Private Network
+    API[API Gatekeeper]
+    BACK1[[Backend 1]]
+    BACK2[[Backend 2]]
+    BACK3[[Backend 3]]
+    end
+
+    REQ --request to route on [Backend 1]--> API
+    API --request data---> BACK1
+    BACK1 --response---> API
+    API--[Backend 1] response-->REQ
+    API ---> BACK2
+    API ---> BACK3
+```
 
 ## Use Cases
 
