@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"strings"
@@ -34,11 +35,29 @@ func (Conn) InitializeDatabase(db *sql.DB, createUserService CreateUserService, 
 		id UUID PRIMARY KEY,
 		created_at TIMESTAMP NOT NULL,
 		updated_at TIMESTAMP,
-		deleted_at TIMESTAMP,
 		login VARCHAR(255) UNIQUE NOT NULL,
-		password VARCHAR(255) NOT NULL,
-		extras JSONB,
-		scopes JSONB
+		password VARCHAR(255) NOT NULL
+	);
+
+	CREATE TABLE IF NOT EXISTS "gatekeeper_user_property" (
+		id UUID PRIMARY KEY,
+		created_at TIMESTAMP NOT NULL,
+		updated_at TIMESTAMP,
+		gatekeeper_user_id UUID NOT NULL REFERENCES "gatekeeper_user" ("id"),
+		property VARCHAR(255) NOT NULL,
+		value VARCHAR(255) NOT NULL,
+
+		UNIQUE(gatekeeper_user_id, property)
+	);
+
+	CREATE TABLE IF NOT EXISTS "gatekeeper_user_scope" (
+		id UUID PRIMARY KEY,
+		created_at TIMESTAMP NOT NULL,
+		updated_at TIMESTAMP,
+		gatekeeper_user_id UUID NOT NULL REFERENCES "gatekeeper_user" ("id"),
+		scope VARCHAR(255) NOT NULL,
+
+		UNIQUE(gatekeeper_user_id, scope)
 	);
 	`
 
@@ -48,10 +67,10 @@ func (Conn) InitializeDatabase(db *sql.DB, createUserService CreateUserService, 
 	}
 
 	_, err = createUserService.Create(model.CreateUserParams{
-		Login:    applicationUserLogin,
-		Password: applicationUserPassword,
-		Extras:   &map[string]any{},
-		Scopes: &[]string{
+		Login:      applicationUserLogin,
+		Password:   applicationUserPassword,
+		Properties: nil,
+		Scopes: []string{
 			"api-gatekeeper.manage-users",
 		},
 	})
@@ -64,4 +83,18 @@ func (Conn) InitializeDatabase(db *sql.DB, createUserService CreateUserService, 
 	}
 
 	return nil
+}
+
+func Transaction(db *sql.DB, fn func(tx *sql.Tx) error) error {
+	tx, err := db.BeginTx(context.Background(), nil)
+	if err != nil {
+		return err
+	}
+
+	if err := fn(tx); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit()
 }

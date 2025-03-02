@@ -35,7 +35,13 @@ func (BasicAuth) GetAllScopes(backend config.Backend, route config.Route) []stri
 	return scopes
 }
 
-func (a BasicAuth) GuardBackendRoute(w http.ResponseWriter, r *http.Request, backend config.Backend, route config.Route, next BackendRouteHandlerFunc) {
+func (a BasicAuth) GuardBackendRoute(
+	w http.ResponseWriter,
+	r *http.Request,
+	backend config.Backend,
+	route config.Route,
+	next BackendRouteHandlerFunc,
+) {
 	if route.IsPublic {
 		next(w, r, backend, route)
 		return
@@ -57,14 +63,20 @@ func (a BasicAuth) GuardBackendRoute(w http.ResponseWriter, r *http.Request, bac
 	next(w, r.WithContext(ctx), backend, route)
 }
 
-func (a BasicAuth) Guard(w http.ResponseWriter, r *http.Request, scopes []string, next http.HandlerFunc) {
+func (a BasicAuth) GuardApplicationRoute(
+	w http.ResponseWriter,
+	r *http.Request,
+	backend config.Backend,
+	route config.Route,
+	next http.HandlerFunc,
+) {
 	user, err := a.basicAuthService.AuthenticateToken(r.Header.Get("Authorization"))
 	if err != nil {
 		httputil.WriteUnauthorized(w)
 		return
 	}
 
-	if err := a.basicAuthService.Authorize(user, scopes); err != nil {
+	if err := a.basicAuthService.Authorize(user, a.GetAllScopes(backend, route)); err != nil {
 		httputil.WriteForbidden(w)
 		return
 	}

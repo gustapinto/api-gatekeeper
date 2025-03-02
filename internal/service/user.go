@@ -70,7 +70,7 @@ func (s User) AuthenticateToken(token string) (model.User, error) {
 
 func (s User) Authorize(user model.User, requiredScopes []string) error {
 	for _, requiredScope := range requiredScopes {
-		if !slices.Contains(*user.Scopes, requiredScope) {
+		if !slices.Contains(user.Scopes, requiredScope) {
 			return fmt.Errorf("missing %s scope", requiredScope)
 		}
 	}

@@ -81,8 +81,8 @@ func main() {
 			mux.HandleFunc(routePattern, func(w http.ResponseWriter, r *http.Request) {
 				start := time.Now()
 
-				if route.HandlerFunc != nil {
-					basicAuth.Guard(w, r, basicAuth.GetAllScopes(backend, route), route.HandlerFunc)
+				if route.IsApplicationRoute() {
+					basicAuth.GuardApplicationRoute(w, r, backend, route, route.HandlerFunc)
 				} else {
 					basicAuth.GuardBackendRoute(w, r, backend, route, backendHandler.HandleBackendRouteRequest)
 				}

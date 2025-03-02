@@ -1,28 +1,10 @@
 services:
-  go:
-    image: mcr.microsoft.com/devcontainers/go:1-1.22-bookworm
-    tty: true
-    container_name: api-gatekeeper-go
-    ports:
-      - 3000:3000
-    volumes:
-      - ./:/api-gatekeeper/app
-    networks:
-      - api-gatekeeper-network
-
   postgres:
     image: postgres:16.3-alpine
     container_name: api-gatekeeper-db
-    restart: unless-stopped
     ports:
       - 5432:5432
-    networks:
-      - api-gatekeeper-network
     environment:
       POSTGRES_USER: api-gatekeeper
       POSTGRES_PASSWORD: api-gatekeeper
       POSTGRES_DB: api-gatekeeper
-
-networks:
-  api-gatekeeper-network:
-    driver: bridge

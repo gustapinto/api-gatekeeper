@@ -85,6 +85,10 @@ func (r *Route) PatternVariables() []RouteVariable {
 	return routeVairables
 }
 
+func (r *Route) IsApplicationRoute() bool {
+	return r.HandlerFunc != nil
+}
+
 type RouteVariable string
 
 func NewRouteVariable(routeVariable string) RouteVariable {
