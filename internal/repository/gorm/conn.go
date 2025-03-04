@@ -9,6 +9,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 type Conn struct{}
@@ -17,6 +18,7 @@ func (Conn) OpenDatabaseConnection(provider, dsn string) (db *gorm.DB, err error
 	conf := &gorm.Config{
 		FullSaveAssociations: true,
 		TranslateError:       true,
+		Logger:               logger.Default.LogMode(logger.Silent),
 	}
 
 	switch provider {
