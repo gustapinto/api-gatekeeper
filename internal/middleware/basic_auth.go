@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/gustapinto/api-gatekeeper/internal/config"
@@ -9,13 +8,15 @@ import (
 	httputil "github.com/gustapinto/api-gatekeeper/pkg/http_util"
 )
 
+type GuardBackendRouteNextFunc = func(http.ResponseWriter, *http.Request, config.Backend, config.Route)
+
+type GuardApplicationRouteNextFunc = http.HandlerFunc
+
 type BasicAuthService interface {
 	AuthenticateToken(string) (model.User, error)
 
 	Authorize(model.User, []string) error
 }
-
-type BackendRouteHandlerFunc = func(http.ResponseWriter, *http.Request, config.Backend, config.Route)
 
 type BasicAuth struct {
 	basicAuthService BasicAuthService
@@ -27,7 +28,7 @@ func NewBasicAuth(basicAuthService BasicAuthService) BasicAuth {
 	}
 }
 
-func (BasicAuth) GetAllScopes(backend config.Backend, route config.Route) []string {
+func (BasicAuth) getAllScopes(backend config.Backend, route config.Route) []string {
 	scopes := make([]string, 0)
 	scopes = append(scopes, backend.Scopes...)
 	scopes = append(scopes, route.Scopes...)
@@ -40,7 +41,7 @@ func (a BasicAuth) GuardBackendRoute(
 	r *http.Request,
 	backend config.Backend,
 	route config.Route,
-	next BackendRouteHandlerFunc,
+	next GuardBackendRouteNextFunc,
 ) {
 	if route.IsPublic {
 		next(w, r, backend, route)
@@ -53,12 +54,12 @@ func (a BasicAuth) GuardBackendRoute(
 		return
 	}
 
-	if err := a.basicAuthService.Authorize(user, a.GetAllScopes(backend, route)); err != nil {
+	if err := a.basicAuthService.Authorize(user, a.getAllScopes(backend, route)); err != nil {
 		httputil.WriteForbidden(w)
 		return
 	}
 
-	ctx := context.WithValue(r.Context(), "userId", user.ID)
+	ctx := withUserID(r.Context(), user.ID)
 
 	next(w, r.WithContext(ctx), backend, route)
 }
@@ -68,7 +69,7 @@ func (a BasicAuth) GuardApplicationRoute(
 	r *http.Request,
 	backend config.Backend,
 	route config.Route,
-	next http.HandlerFunc,
+	next GuardApplicationRouteNextFunc,
 ) {
 	user, err := a.basicAuthService.AuthenticateToken(r.Header.Get("Authorization"))
 	if err != nil {
@@ -76,12 +77,12 @@ func (a BasicAuth) GuardApplicationRoute(
 		return
 	}
 
-	if err := a.basicAuthService.Authorize(user, a.GetAllScopes(backend, route)); err != nil {
+	if err := a.basicAuthService.Authorize(user, a.getAllScopes(backend, route)); err != nil {
 		httputil.WriteForbidden(w)
 		return
 	}
 
-	ctx := context.WithValue(r.Context(), "userId", user.ID)
+	ctx := withUserID(r.Context(), user.ID)
 
 	next(w, r.WithContext(ctx))
 }
