@@ -12,8 +12,14 @@ type Database struct {
 	DSN      string `yaml:"dsn"`
 }
 
+const (
+	DatabaseProviderPostgres = "postgres"
+	DatabaseProviderSqlite   = "sqlite"
+)
+
 var ValidProviders = []string{
-	"postgres",
+	DatabaseProviderPostgres,
+	DatabaseProviderSqlite,
 }
 
 func (d Database) Validate() error {

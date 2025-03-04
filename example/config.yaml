@@ -5,8 +5,10 @@ api:                        # The application api configuration
     password: admin         # The application user password, in a production environment this must be secured
 
 database:                                                                                         # The application database configurations
-  provider: "postgres"                                                                            # The database provider (postgres, sqlite)
-  dsn: "postgresql://api-gatekeeper:api-gatekeeper@localhost:5432/api-gatekeeper?sslmode=disable" # The database connection dsn
+  provider: "sqlite"                                                                            # The database provider (postgres, sqlite)
+  # provider: "postgres"                                                                            # The database provider (postgres, sqlite)
+  # dsn: "postgresql://api-gatekeeper:api-gatekeeper@localhost:5432/api-gatekeeper?sslmode=disable" # The database connection dsn
+  dsn: "gatekeeper.db" # The database connection dsn
 
 backends:                         # The backends configurations
   - name: "ping-backend"          # The backend name

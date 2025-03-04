@@ -1,35 +1,32 @@
 package gorm
 
 import (
+	"errors"
 	"fmt"
-	"strings"
 
+	"github.com/gustapinto/api-gatekeeper/internal/config"
 	"github.com/gustapinto/api-gatekeeper/internal/model"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
-var (
-	providerSqlite   = "sqlite"
-	providerPostgres = "postgres"
-)
-
 type Conn struct{}
 
 func (Conn) OpenDatabaseConnection(provider, dsn string) (db *gorm.DB, err error) {
-	config := &gorm.Config{
+	conf := &gorm.Config{
 		FullSaveAssociations: true,
+		TranslateError:       true,
 	}
 
 	switch provider {
-	case providerSqlite:
-		db, err = gorm.Open(sqlite.Open(dsn), config)
+	case config.DatabaseProviderSqlite:
+		db, err = gorm.Open(sqlite.Open(dsn), conf)
 		if err != nil {
 			return nil, err
 		}
-	case providerPostgres:
-		db, err = gorm.Open(postgres.Open(dsn), config)
+	case config.DatabaseProviderPostgres:
+		db, err = gorm.Open(postgres.Open(dsn), conf)
 		if err != nil {
 			return nil, err
 		}
@@ -67,7 +64,7 @@ func (Conn) InitializeDatabase(
 		},
 	})
 	if err != nil {
-		if strings.Contains(err.Error(), "value violates unique constraint") {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
 			return nil
 		}
 

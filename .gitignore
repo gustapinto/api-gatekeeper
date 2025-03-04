@@ -27,3 +27,4 @@ go.work.sum
 # Custom
 bin/
 __debug*
+*.db
