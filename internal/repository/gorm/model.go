@@ -3,6 +3,7 @@ package gorm
 import (
 	"time"
 
+	uuidutil "github.com/gustapinto/api-gatekeeper/pkg/uuid_util"
 	"gorm.io/gorm"
 )
 
@@ -19,7 +20,7 @@ type gatekeeperUser struct {
 }
 
 func (u *gatekeeperUser) BeforeSave(tx *gorm.DB) error {
-	u.ID = idOrNew(u.ID)
+	u.ID = uuidutil.NewWhenEmptyOrInvalid(u.ID)
 	return nil
 }
 
@@ -33,7 +34,7 @@ type gatekeeperUserProperty struct {
 }
 
 func (u *gatekeeperUserProperty) BeforeSave(tx *gorm.DB) error {
-	u.ID = idOrNew(u.ID)
+	u.ID = uuidutil.NewWhenEmptyOrInvalid(u.ID)
 	return nil
 }
 
@@ -46,6 +47,6 @@ type gatekeeperUserScope struct {
 }
 
 func (u *gatekeeperUserScope) BeforeSave(tx *gorm.DB) error {
-	u.ID = idOrNew(u.ID)
+	u.ID = uuidutil.NewWhenEmptyOrInvalid(u.ID)
 	return nil
 }

@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/gustapinto/api-gatekeeper/internal/config"
 	"github.com/gustapinto/api-gatekeeper/internal/model"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -23,6 +24,8 @@ type UserRepository interface {
 	Update(model.UpdateUserParams) (*model.User, error)
 
 	Delete(string) error
+
+	IsAlreadyExistsError(error) bool
 }
 
 type User struct {
@@ -102,6 +105,23 @@ func (s User) Create(params model.CreateUserParams) (model.User, error) {
 	user.Password = ""
 
 	return *user, err
+}
+
+func (s User) CreateApplicationUser(cfg config.User) error {
+	_, err := s.Create(model.CreateUserParams{
+		Login:      cfg.Login,
+		Password:   cfg.Password,
+		Properties: nil,
+		Scopes: []string{
+			"api-gatekeeper.application",
+			"api-gatekeeper.manage-users",
+		},
+	})
+	if err != nil && !s.userRepository.IsAlreadyExistsError(err) {
+		return err
+	}
+
+	return nil
 }
 
 func (s User) Update(params model.UpdateUserParams) (model.User, error) {

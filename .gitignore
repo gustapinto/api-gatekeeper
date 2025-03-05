@@ -28,3 +28,7 @@ go.work.sum
 bin/
 __debug*
 *.db
+
+# IDE Stuff
+.vscode/
+.idea/

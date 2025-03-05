@@ -1,6 +1,8 @@
 package gorm
 
 import (
+	"errors"
+
 	"github.com/gustapinto/api-gatekeeper/internal/model"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -101,6 +103,14 @@ func (u *User) Update(params model.UpdateUserParams) (*model.User, error) {
 	}
 
 	return u.GetByID(gUser.ID)
+}
+
+func (*User) IsAlreadyExistsError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	return errors.Is(err, gorm.ErrDuplicatedKey)
 }
 
 // Private methods

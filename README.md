@@ -34,14 +34,14 @@ The API Gatekeeper is a application that sits between the public web requests an
 1. Any operating system that can run the released binaries
 2. A compatible database. Supported databases:
    - [PostgreSQL](https://www.postgresql.org/), version 12+
-  
+
 ## Usage
 
 1. Download the latest application binary from the [Releases page](https://github.com/gustapinto/api-gatekeeper/releases)
 2. Create a [configuration](https://github.com/gustapinto/api-gatekeeper?tab=readme-ov-file#configuration) file. There is a example on [examples/config.yaml](https://github.com/gustapinto/api-gatekeeper/blob/main/example/config.yaml)
 3. Start the application using the configuration file with the command:
    ```bash
-   ./api-gatekeeper-linux-amd64 -config=$HOME/config.yaml
+   ./api-gatekeeper-linux-amd64 -config=<path to>/config.yaml
    ```
 
 ## Configuration
@@ -51,12 +51,12 @@ The configuration is done by a yaml file. This file path must be provided by the
 api:                        # The application api configuration
   address: "localhost:3000" # The application listen address
   user:                     # The application user, it will be persisted on the application startup
-    login: admin            # The application user login, in a production environment this must be secured
-    password: admin         # The application user password, in a production environment this must be secured
+    login: "admin"           # The application user login, in a production environment this must be secured
+    password: "admin"        # The application user password, in a production environment this must be secured
 
-database:                                                                                        # The application database configurations
-  provider: "postgres"                                                                           # The database provider
-  dsn: "postgresql://api-gatekeeper:api-gatekeeper@postgres:5432/api-gatekeeper?sslmode=disable" # The database connection dsn
+database:              # The application database configurations
+  provider: "sqlite"   # The database provider (postgres, sqlite)
+  dsn: "gatekeeper.db" # The database connection dsn
 
 backends:                         # The backends configurations
   - name: "ping-backend"          # The backend name
