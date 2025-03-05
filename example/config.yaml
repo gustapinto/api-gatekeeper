@@ -1,28 +1,61 @@
-api:                        # The application api configuration
-  address: "localhost:3000" # The application listen address
-  user:                     # The application user, it will be persisted on the application startup
-    login: admin            # The application user login, in a production environment this must be secured
-    password: admin         # The application user password, in a production environment this must be secured
+# The application HTTP API configuration
+api:
+  # The address on which the application HTTP endpoints will listen
+  address: "localhost:3000"
+  # The application user, it will be persisted on the application startup. In a production environment
+  # their values must be secured
+  user:
+    # The application user login
+    login: "admin"
+    # The application user password
+    password: "admin"
 
-database:                                                                                        # The application database configurations
-  provider: "postgres"                                                                           # The database provider
-  dsn: "postgresql://api-gatekeeper:api-gatekeeper@postgres:5432/api-gatekeeper?sslmode=disable" # The database connection dsn
+# The application database configuration
+database:
+  # The database provider. Supported providers:
+  # - "postgres": For PostgreSQL 13+ databases
+  # - "sqlite": For SQLite databases
+  provider: "sqlite"
+  # The database connection dsn
+  dsn: "gatekeeper.db"
 
-backends:                         # The backends configurations
-  - name: "ping-backend"          # The backend name
-    host: "http://localhost:8080" # The backend host
-    scopes:                       # (Optional) The authentication scopes required for every route in this backend
+# The backends configuration, it is a list of backend proxies
+backends:
+  - # The backend name
+    name: "ping-backend"
+    # The backend host or address
+    host: "http://localhost:8080"
+    # (Optional) The authentication scopes required for every route in this backend
+    scopes:
       - "ping-backend-scope"
-    headers: # (Optional) The headers to be included in the request for every route in this backend
+    # (Optional) The static headers to be included in the request for every route in this backend
+    headers:
       Authorization: "Bearer foobar"
       X-Example-Header-backend: "example backend header"
-    routes:                     # The backend routes
-      - method: "GET"           # The route method
-        backendPath: "/ping"    # The absolute path on your application, path variables are replicated as long as both have the same name
-        gatekeeperPath: "/ping" # The absolute path that will be exposed by the api-gatekeeper, path variables are replicated as long as both have the same name
-        timeoutSeconds: 30      # (Optional) The timeout in seconds, set to 0 to dont timeout
-        isPublic: false         # (Optional) If this route is public
-        scopes:                 # (Optional) The authentication scopes required for this route, they will be added with the backend scopes
+    # A list of routes in the backend
+    routes:
+      - # The route method, any HTTP method can be used, but the route method must be equal to the
+        # HTTP method used in your application route
+        method: "GET"
+        # The absolute path on your application, path variables are replicated from the "gatekeeperPath"
+        # as long as both have the same name. The path must follow the Go ServeMux URL Patterns syntax
+        # (https://pkg.go.dev/net/http#hdr-Patterns-ServeMux). Query Params and Headers will be replicated
+        backendPath: "/ping"
+        # (Optional) The absolute path that will be exposed by the api-gatekeeper, path variables are
+        # replicated to the "backendPath" as long as both have the same name. If not provided the
+        # "backendPath" will be used. The path must follow the Go ServeMux URL Patterns syntax
+        # (https://pkg.go.dev/net/http#hdr-Patterns-ServeMux). Query Params and Headers will be replicated
+        gatekeeperPath: "/ping-v1"
+        # (Optional) The timeout in seconds, set to 0 to dont timeout
+        timeoutSeconds: 30
+        # (Optional) If this route is public. Public routes do not require a Authorization header to
+        # be acessed
+        isPublic: false
+        # (Optional) The authentication scopes required for this route, they will be stacked with the
+        # backend scopes
+        scopes:
           - "ping-backend.get-ping-scope"
-        headers: # (Optional) The headers to be included in the request for this route
+        # (Optional) The static headers to be included in the request for this route, they will be
+        # stacked with the backend headers
+        headers:
           X-Example-Header-Route: "example route header"

@@ -11,11 +11,15 @@ Authorization: Basic {{basicToken}}
 {
   "login": "example-login",
   "password": "example-password",
-  "extras": {
-    "example-property-key": "example-property-value"
+  "properties": {
+    "example-property-key-1": "example-property-value-1",
+    "example-property-key-2": "example-property-value-2",
+    "example-property-key-3": "example-property-value-3"
   },
   "scopes": [
-    "example-scope"
+    "example-scope-1",
+    "example-scope-2",
+    "example-scope-3"
   ]
 }
 ###
@@ -28,11 +32,17 @@ Authorization: Basic {{basicToken}}
 {
   "login": "example-login-new",
   "password": "example-password",
-  "extras": {
-    "example-property-key": "example-property-value"
+  "properties": {
+    "example-property-key-1": "example-property-value-1",
+    "example-property-key-2": "example-property-value-2",
+    "example-property-key-3": "example-property-value-3",
+    "example-property-key-4": "example-property-value-4"
   },
   "scopes": [
-    "example-scope"
+    "example-scope-1",
+    "example-scope-2",
+    "example-scope-3",
+    "example-scope-4"
   ]
 }
 ###

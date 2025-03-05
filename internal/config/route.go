@@ -35,10 +35,6 @@ func (r Route) Validate() error {
 		return errors.New("config 'route.backendPath' must be present and not be empty")
 	}
 
-	if strings.TrimSpace(r.GatekeeperPath) == "" {
-		return errors.New("config 'route.gatekeeperPath' must be present and not be empty")
-	}
-
 	if strings.HasPrefix(strings.ToLower(r.GatekeeperPath), "/api-gatekeeper/") {
 		return errors.New("config 'route.gatekeeperPath' should not start with /api-gatekeeper, this is a reserved route namespace")
 	}
@@ -55,6 +51,10 @@ func (r *Route) Normalize() {
 
 	if r.Headers == nil {
 		r.Headers = make(map[string]string)
+	}
+
+	if len(r.GatekeeperPath) == 0 {
+		r.GatekeeperPath = r.BackendPath
 	}
 }
 
@@ -83,6 +83,10 @@ func (r *Route) PatternVariables() []RouteVariable {
 	}
 
 	return routeVairables
+}
+
+func (r *Route) IsApplicationRoute() bool {
+	return r.HandlerFunc != nil
 }
 
 type RouteVariable string

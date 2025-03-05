@@ -8,10 +8,10 @@ import (
 	"os"
 	"time"
 
+	"github.com/gustapinto/api-gatekeeper/cmd/api_gatekeeper_rest/handler"
+	"github.com/gustapinto/api-gatekeeper/cmd/api_gatekeeper_rest/middleware"
 	"github.com/gustapinto/api-gatekeeper/internal/config"
-	"github.com/gustapinto/api-gatekeeper/internal/handler"
-	"github.com/gustapinto/api-gatekeeper/internal/middleware"
-	"github.com/gustapinto/api-gatekeeper/internal/repository/postgres"
+	"github.com/gustapinto/api-gatekeeper/internal/repository/gorm"
 	"github.com/gustapinto/api-gatekeeper/internal/service"
 )
 
@@ -37,15 +37,15 @@ func main() {
 
 	logger.Info("Validated application config")
 
-	db, err := postgres.Conn{}.OpenDatabaseConnection(cfg.Database.DSN)
+	db, err := gorm.OpenDatabaseConnection(cfg.Database)
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Error("Failed to connect to database", "error", err)
 		os.Exit(1)
 	}
 
 	logger.Info("Connected to database")
 
-	userRepository := postgres.NewUser(db)
+	userRepository := gorm.NewUser(db)
 	userService := service.NewUser(userRepository)
 	userHandler := handler.NewUser(userService)
 	basicAuth := middleware.NewBasicAuth(userService)
@@ -56,13 +56,20 @@ func main() {
 
 	logger.Info("Created dependencies")
 
-	err = postgres.Conn{}.InitializeDatabase(db, userService, cfg.API.User.Login, cfg.API.User.Password)
+	err = gorm.InitializeDatabase(db)
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Error("Failed to initialize database schema", "error", err)
 		os.Exit(1)
 	}
 
-	logger.Info("Initialized database schema and application user")
+	logger.Info("Initialized database schema")
+
+	if err := userService.CreateApplicationUser(cfg.API.User); err != nil {
+		logger.Error("Failed to initialize aplication user", "error", err)
+		os.Exit(1)
+	}
+
+	logger.Info("Initialized application user")
 
 	mux := http.NewServeMux()
 	alreadyRegisteredRoutes := make(map[string]bool)
@@ -81,8 +88,8 @@ func main() {
 			mux.HandleFunc(routePattern, func(w http.ResponseWriter, r *http.Request) {
 				start := time.Now()
 
-				if route.HandlerFunc != nil {
-					basicAuth.Guard(w, r, basicAuth.GetAllScopes(backend, route), route.HandlerFunc)
+				if route.IsApplicationRoute() {
+					basicAuth.GuardApplicationRoute(w, r, backend, route, route.HandlerFunc)
 				} else {
 					basicAuth.GuardBackendRoute(w, r, backend, route, backendHandler.HandleBackendRouteRequest)
 				}

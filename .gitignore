@@ -27,3 +27,8 @@ go.work.sum
 # Custom
 bin/
 __debug*
+*.db
+
+# IDE Stuff
+.vscode/
+.idea/
