@@ -3,6 +3,7 @@ package service
 import (
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/gustapinto/api-gatekeeper/internal/config"
@@ -14,31 +15,62 @@ func NewBackend() Backend {
 	return Backend{}
 }
 
-func (Backend) DoRequestToBackendRoute(userId string, service config.Backend, route config.Route, body io.ReadCloser) (*http.Response, error) {
+func (Backend) mergeHeaders(headerMaps ...map[string]string) map[string]string {
+	headers := make(map[string]string)
+
+	for _, headerMap := range headerMaps {
+		for key, value := range headerMap {
+			headers[key] = value
+		}
+	}
+
+	return headers
+}
+
+func (b Backend) DoRequestToBackendRoute(
+	userId string,
+	requestId string,
+	backend config.Backend,
+	route config.Route,
+	body io.ReadCloser,
+	requestHeaders map[string]string,
+	queryParams map[string]string,
+) (*http.Response, error) {
 	client := http.Client{
 		Timeout: time.Duration(route.TimeoutSeconds) * time.Second,
 	}
 	defer client.CloseIdleConnections()
 
-	request, err := http.NewRequest(route.Method, service.Host+"/"+route.BackendPath, body)
+	backendPath, err := url.JoinPath(backend.Host, route.BackendPath)
+	if err != nil {
+		return nil, err
+	}
+
+	backendUrl, err := url.Parse(backendPath)
+	if err != nil {
+		return nil, err
+	}
+
+	backendUrlQuery := backendUrl.Query()
+	for key, value := range queryParams {
+		backendUrlQuery.Add(key, value)
+	}
+
+	backendUrl.RawQuery = backendUrlQuery.Encode()
+
+	request, err := http.NewRequest(route.Method, backendUrl.String(), body)
 	if err != nil {
 		return nil, err
 	}
 	defer request.Body.Close()
 
-	if service.Headers != nil {
-		for key, value := range route.Headers {
-			request.Header.Add(key, value)
-		}
-	}
-
-	if route.Headers != nil {
-		for key, value := range route.Headers {
-			request.Header.Add(key, value)
-		}
+	headers := b.mergeHeaders(backend.Headers, route.Headers, requestHeaders)
+	for key, value := range headers {
+		request.Header.Add(key, value)
 	}
 
 	request.Header.Add("X-Api-Gatekeeper-User", userId)
+	request.Header.Add("X-Api-Gatekeeper-Request", userId)
 
 	return client.Do(request)
 }

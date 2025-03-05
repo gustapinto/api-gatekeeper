@@ -21,11 +21,14 @@ func NewBackend(backendService service.Backend) Backend {
 }
 
 func (b Backend) HandleBackendRouteRequest(w http.ResponseWriter, r *http.Request, backend config.Backend, route config.Route) {
-	uid := r.Context().Value("userId")
-
 	userId := ""
-	if uidStr, ok := uid.(string); ok {
+	if uidStr, ok := r.Context().Value("userId").(string); ok {
 		userId = uidStr
+	}
+
+	requestID := ""
+	if uidStr, ok := r.Context().Value("requestId").(string); ok {
+		requestID = uidStr
 	}
 
 	if strings.ToUpper(r.Method) != route.Method {
@@ -40,7 +43,14 @@ func (b Backend) HandleBackendRouteRequest(w http.ResponseWriter, r *http.Reques
 		route.BackendPath = newPattern
 	}
 
-	response, err := b.backendService.DoRequestToBackendRoute(userId, backend, route, r.Body)
+	response, err := b.backendService.DoRequestToBackendRoute(
+		userId,
+		requestID,
+		backend,
+		route,
+		r.Body,
+		httputil.GetHeadersAsMap(r),
+		httputil.GetQueryParamsAsMap(r))
 	if err != nil {
 		httputil.WriteInternalServerError(w, err)
 		return

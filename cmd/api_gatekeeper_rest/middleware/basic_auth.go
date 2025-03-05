@@ -3,6 +3,7 @@ package middleware
 import (
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/gustapinto/api-gatekeeper/internal/config"
 	"github.com/gustapinto/api-gatekeeper/internal/model"
 	httputil "github.com/gustapinto/api-gatekeeper/pkg/http_util"
@@ -36,6 +37,22 @@ func (BasicAuth) getAllScopes(backend config.Backend, route config.Route) []stri
 	return scopes
 }
 
+func (BasicAuth) getRequestId(r *http.Request) string {
+	requestID := uuid.NewString()
+
+	if r == nil {
+		return requestID
+	}
+
+	if xRequestIdHeader := r.Header.Get("X-RequestId"); len(xRequestIdHeader) > 0 {
+		requestID = xRequestIdHeader
+	} else if xApiGatekeeperRequestIdHeader := r.Header.Get("X-Api-Gatekeeper-RequestId"); len(xApiGatekeeperRequestIdHeader) > 0 {
+		requestID = xApiGatekeeperRequestIdHeader
+	}
+
+	return requestID
+}
+
 func (a BasicAuth) GuardBackendRoute(
 	w http.ResponseWriter,
 	r *http.Request,
@@ -43,6 +60,8 @@ func (a BasicAuth) GuardBackendRoute(
 	route config.Route,
 	next GuardBackendRouteNextFunc,
 ) {
+	requestID := a.getRequestId(r)
+
 	if route.IsPublic {
 		next(w, r, backend, route)
 		return
@@ -60,6 +79,7 @@ func (a BasicAuth) GuardBackendRoute(
 	}
 
 	ctx := withUserID(r.Context(), user.ID)
+	ctx = withRequestID(ctx, requestID)
 
 	next(w, r.WithContext(ctx), backend, route)
 }
@@ -71,6 +91,8 @@ func (a BasicAuth) GuardApplicationRoute(
 	route config.Route,
 	next GuardApplicationRouteNextFunc,
 ) {
+	requestID := a.getRequestId(r)
+
 	user, err := a.basicAuthService.AuthenticateToken(r.Header.Get("Authorization"))
 	if err != nil {
 		httputil.WriteUnauthorized(w)
@@ -83,6 +105,7 @@ func (a BasicAuth) GuardApplicationRoute(
 	}
 
 	ctx := withUserID(r.Context(), user.ID)
+	ctx = withRequestID(ctx, requestID)
 
 	next(w, r.WithContext(ctx))
 }
