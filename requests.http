@@ -3,6 +3,13 @@
 
 @userId = {{CreateUser.response.body.id}}
 
+# @name LoginJWT
+POST {{host}}/api-gatekeeper/v1/users/login
+Content-Type: application/json
+Authorization: Basic {{basicToken}}
+X-Token-Type: jwt
+###
+
 # @name CreateUser
 POST {{host}}/api-gatekeeper/v1/users
 Content-Type: application/json

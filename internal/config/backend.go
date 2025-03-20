@@ -62,6 +62,8 @@ type apiGatekeeperUserHandler interface {
 	GetByID(http.ResponseWriter, *http.Request)
 
 	GetAll(http.ResponseWriter, *http.Request)
+
+	Login(http.ResponseWriter, *http.Request)
 }
 
 func (Backend) APIGatekeeperBackend(userHandler apiGatekeeperUserHandler) Backend {
@@ -97,6 +99,12 @@ func (Backend) APIGatekeeperBackend(userHandler apiGatekeeperUserHandler) Backen
 				Method:         "GET",
 				GatekeeperPath: "/api-gatekeeper/v1/users/{userId}",
 				HandlerFunc:    userHandler.GetByID,
+			},
+			{
+				Method:         "POST",
+				GatekeeperPath: "/api-gatekeeper/v1/users/login",
+				HandlerFunc:    userHandler.Login,
+				IsPublic:       true,
 			},
 		},
 	}

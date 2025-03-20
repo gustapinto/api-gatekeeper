@@ -2,8 +2,20 @@
 api:
   # The address on which the application HTTP endpoints will listen
   address: "localhost:3000"
-  # The application user, it will be persisted on the application startup. In a production environment
-  # their values must be secured
+  # The application authentication method, can be "basic", for basic auth, "jwt"
+  # for JWT based workflows (the JWT will represent the user with all properties
+  # and permissions)
+  #
+  # Required request headers per authType:
+  # - basic:
+  #   - Authorization: Basic <username and password as base64>
+  # - jwt:
+  #   - Authorization: Bearer <signed JWT Token>s
+  authType: "basic"
+  # (Optional) The "jwt" token expiration duration, defaults to 30m. For the supported
+  # values and syntax please see (https://pkg.go.dev/time#ParseDuration)
+  tokenExpiration: "6h"
+  # (Optional) The application user, it will be persisted on the application startup.
   user:
     # The application user login
     login: "admin"
@@ -46,7 +58,7 @@ backends:
         # "backendPath" will be used. The path must follow the Go ServeMux URL Patterns syntax
         # (https://pkg.go.dev/net/http#hdr-Patterns-ServeMux). Query Params and Headers will be replicated
         gatekeeperPath: "/ping-v1"
-        # (Optional) The timeout in seconds, set to 0 to dont timeout
+        # (Optional) The timeout in seconds, set to 0 or omit it to dont timeout
         timeoutSeconds: 30
         # (Optional) If this route is public. Public routes do not require a Authorization header to
         # be acessed

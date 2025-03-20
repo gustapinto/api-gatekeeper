@@ -1,10 +1,7 @@
 package service
 
 import (
-	"encoding/base64"
 	"errors"
-	"fmt"
-	"slices"
 	"strings"
 
 	"github.com/gustapinto/api-gatekeeper/internal/config"
@@ -32,53 +29,10 @@ type User struct {
 	userRepository UserRepository
 }
 
-func NewUser(userRepository UserRepository) User {
-	return User{
+func NewUser(userRepository UserRepository) *User {
+	return &User{
 		userRepository: userRepository,
 	}
-}
-
-func (s User) AuthenticateToken(token string) (model.User, error) {
-	if token == "" {
-		return model.User{}, errors.New("badparams: missing Authorization token")
-	}
-
-	if strings.Contains(token, "Basic") {
-		token = strings.TrimSpace(strings.ReplaceAll(token, "Basic", ""))
-	}
-
-	decodedToken, err := base64.StdEncoding.DecodeString(token)
-	if err != nil {
-		return model.User{}, err
-	}
-
-	data := strings.Split(string(decodedToken), ":")
-	if len(data) < 2 {
-		return model.User{}, err
-	}
-	login := data[0]
-	password := data[1]
-
-	user, err := s.userRepository.GetByLogin(login)
-	if err != nil {
-		return model.User{}, err
-	}
-
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return model.User{}, err
-	}
-
-	return *user, nil
-}
-
-func (s User) Authorize(user model.User, requiredScopes []string) error {
-	for _, requiredScope := range requiredScopes {
-		if !slices.Contains(user.Scopes, requiredScope) {
-			return fmt.Errorf("missing %s scope", requiredScope)
-		}
-	}
-
-	return nil
 }
 
 func (s User) Create(params model.CreateUserParams) (model.User, error) {
@@ -180,4 +134,17 @@ func (u User) GetByID(id string) (model.User, error) {
 
 func (u User) GetAll() ([]model.User, error) {
 	return u.userRepository.GetAll()
+}
+
+func (u User) Login(username, password string) (model.User, error) {
+	user, err := u.userRepository.GetByLogin(username)
+	if err != nil {
+		return model.User{}, err
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		return model.User{}, err
+	}
+
+	return *user, nil
 }

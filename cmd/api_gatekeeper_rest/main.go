@@ -46,9 +46,10 @@ func main() {
 	logger.Info("Connected to database")
 
 	userRepository := gorm.NewUser(db)
+	basicAuthService := service.NewBasicAuth(userRepository)
+	jwtService := service.NewJWT(userRepository, "example")
 	userService := service.NewUser(userRepository)
-	userHandler := handler.NewUser(userService)
-	basicAuth := middleware.NewBasicAuth(userService)
+	userHandler := handler.NewUser(userService, jwtService)
 	backendService := service.NewBackend()
 	backendHandler := handler.NewBackend(backendService)
 
@@ -71,6 +72,16 @@ func main() {
 
 	logger.Info("Initialized application user")
 
+	var authService middleware.AuthService
+	switch cfg.API.AuthType {
+	case config.AuthTypeBasic:
+		authService = basicAuthService
+	case config.AuthTypeJwt:
+		authService = jwtService
+	}
+
+	auth := middleware.NewAuth(authService)
+
 	mux := http.NewServeMux()
 	alreadyRegisteredRoutes := make(map[string]bool)
 	for _, backend := range backends {
@@ -89,9 +100,9 @@ func main() {
 				start := time.Now()
 
 				if route.IsApplicationRoute() {
-					basicAuth.GuardApplicationRoute(w, r, backend, route, route.HandlerFunc)
+					auth.GuardApplicationRoute(w, r, backend, route, route.HandlerFunc)
 				} else {
-					basicAuth.GuardBackendRoute(w, r, backend, route, backendHandler.HandleBackendRouteRequest)
+					auth.GuardBackendRoute(w, r, backend, route, backendHandler.HandleBackendRouteRequest)
 				}
 
 				requestDuration := time.Since(start)

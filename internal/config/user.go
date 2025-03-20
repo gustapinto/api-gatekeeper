@@ -8,6 +8,7 @@ import (
 type User struct {
 	Login    string `yaml:"login"`
 	Password string `yaml:"password"`
+	Token    string `yaml:"token"`
 }
 
 func (u User) Validate() error {

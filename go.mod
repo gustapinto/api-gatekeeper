@@ -9,6 +9,7 @@ require gopkg.in/yaml.v3 v3.0.1
 require golang.org/x/crypto v0.35.0
 
 require (
+	github.com/golang-jwt/jwt/v4 v4.5.1
 	github.com/google/uuid v1.6.0
 	gorm.io/driver/postgres v1.5.11
 	gorm.io/driver/sqlite v1.5.7

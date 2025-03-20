@@ -6,18 +6,21 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/gustapinto/api-gatekeeper/cmd/api_gatekeeper_rest/dto/response"
 	"github.com/gustapinto/api-gatekeeper/internal/model"
 	"github.com/gustapinto/api-gatekeeper/internal/service"
 	httputil "github.com/gustapinto/api-gatekeeper/pkg/http_util"
 )
 
 type User struct {
-	userService service.User
+	userService *service.User
+	jwtService  *service.JWT
 }
 
-func NewUser(userService service.User) User {
+func NewUser(userService *service.User, jwtService *service.JWT) User {
 	return User{
 		userService: userService,
+		jwtService:  jwtService,
 	}
 }
 
@@ -106,4 +109,37 @@ func (u User) GetAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	httputil.WriteOk(w, user)
+}
+
+func (u User) Login(w http.ResponseWriter, r *http.Request) {
+	username, password, err := httputil.ParseBasicAuthorizationToken(r.Header.Get("Authorization"))
+	if err != nil {
+		if strings.Contains(err.Error(), "badparams:") {
+			httputil.WriteBadRequest(w, err)
+			return
+		}
+
+		httputil.WriteUnauthorized(w)
+		return
+	}
+
+	user, err := u.userService.Login(username, password)
+	if err != nil {
+		httputil.WriteBadRequest(w, err)
+		return
+	}
+
+	tokenType := r.Header.Get("X-Token-Type")
+	if strings.ToLower(strings.TrimSpace(tokenType)) == "jwt" {
+		token, err := u.jwtService.GenerateToken(user)
+		if err != nil {
+			httputil.WriteBadRequest(w, err)
+			return
+		}
+
+		httputil.WriteOk(w, response.JWTTokenresponse{
+			Token: token,
+		})
+		return
+	}
 }
