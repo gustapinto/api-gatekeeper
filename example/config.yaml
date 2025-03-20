@@ -1,3 +1,7 @@
+# API Gatekeeper configuration example
+#
+# Environment variables can be used with the ${VARIABLE_NAME} syntax
+
 # The application HTTP API configuration
 api:
   # The address on which the application HTTP endpoints will listen
