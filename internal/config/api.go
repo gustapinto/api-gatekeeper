@@ -16,6 +16,7 @@ const (
 type API struct {
 	Address         string   `yaml:"address"`
 	TokenExpiration string   `yaml:"tokenExpiration"`
+	JwtSecret       string   `yaml:"jwtSecret"`
 	AuthType        AuthType `yaml:"authType"`
 	User            User     `yaml:"user"`
 }

@@ -23,12 +23,14 @@ type userClaims struct {
 type JWT struct {
 	userRepository JWTUserRepository
 	jwtSecret      string
+	tokenDuration  time.Duration
 }
 
-func NewJWT(userRepository JWTUserRepository, jwtSecret string) *JWT {
+func NewJWT(userRepository JWTUserRepository, jwtSecret string, tokenDuration time.Duration) *JWT {
 	return &JWT{
 		userRepository: userRepository,
 		jwtSecret:      jwtSecret,
+		tokenDuration:  tokenDuration,
 	}
 }
 
@@ -70,7 +72,7 @@ func (s *JWT) GenerateToken(user model.User) (string, error) {
 	claims := &userClaims{
 		User: user,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(s.tokenDuration)),
 		},
 	}
 

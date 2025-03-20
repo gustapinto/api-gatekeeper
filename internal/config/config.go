@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"gopkg.in/yaml.v3"
+	yamlutil "github.com/gustapinto/api-gatekeeper/pkg/yaml_util"
 )
 
 type Config struct {
@@ -58,8 +58,7 @@ func LoadConfigFromYamlFile(configPath *string) (*Config, error) {
 	}
 
 	var config Config
-	err = yaml.Unmarshal(configBytes, &config)
-	if err != nil {
+	if err := yamlutil.Unmarshal(configBytes, &config); err != nil {
 		return nil, err
 	}
 

@@ -47,7 +47,7 @@ func main() {
 
 	userRepository := gorm.NewUser(db)
 	basicAuthService := service.NewBasicAuth(userRepository)
-	jwtService := service.NewJWT(userRepository, "example")
+	jwtService := service.NewJWT(userRepository, cfg.API.JwtSecret, cfg.API.TokenDuration())
 	userService := service.NewUser(userRepository)
 	userHandler := handler.NewUser(userService, jwtService)
 	backendService := service.NewBackend()

@@ -15,6 +15,8 @@ api:
   # (Optional) The "jwt" token expiration duration, defaults to 30m. For the supported
   # values and syntax please see (https://pkg.go.dev/time#ParseDuration)
   tokenExpiration: "6h"
+  # (Optional), The "jwt" token secret
+  jwtSecret: "some-super-secret-secret"
   # (Optional) The application user, it will be persisted on the application startup.
   user:
     # The application user login
