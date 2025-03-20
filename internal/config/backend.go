@@ -7,11 +7,12 @@ import (
 )
 
 type Backend struct {
-	Name    string            `yaml:"name"`
-	Host    string            `yaml:"host"`
-	Scopes  []string          `yaml:"scopes"`
-	Headers map[string]string `yaml:"headers"`
-	Routes  []Route           `yaml:"routes"`
+	Name        string            `yaml:"name"`
+	Host        string            `yaml:"host"`
+	PassHeaders bool              `yaml:"passHeaders"`
+	Scopes      []string          `yaml:"scopes"`
+	Headers     map[string]string `yaml:"headers"`
+	Routes      []Route           `yaml:"routes"`
 }
 
 func (b Backend) Validate() error {

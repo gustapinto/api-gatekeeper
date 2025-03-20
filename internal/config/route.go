@@ -14,6 +14,7 @@ type Route struct {
 	GatekeeperPath string            `yaml:"gatekeeperPath"`
 	TimeoutSeconds int               `yaml:"timeoutSeconds"`
 	IsPublic       bool              `yaml:"isPublic"`
+	PassHeaders    bool              `yaml:"passHeaders"`
 	Scopes         []string          `yaml:"scopes"`
 	Headers        map[string]string `yaml:"headers"`
 	HandlerFunc    http.HandlerFunc

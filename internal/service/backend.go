@@ -64,7 +64,12 @@ func (b Backend) DoRequestToBackendRoute(
 	}
 	defer request.Body.Close()
 
-	headers := b.mergeHeaders(backend.Headers, route.Headers, requestHeaders)
+	additionalHeaders := make(map[string]string)
+	if backend.PassHeaders || route.PassHeaders {
+		additionalHeaders = requestHeaders
+	}
+
+	headers := b.mergeHeaders(backend.Headers, route.Headers, additionalHeaders)
 	for key, value := range headers {
 		request.Header.Add(key, value)
 	}

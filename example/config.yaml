@@ -37,6 +37,8 @@ backends:
     name: "ping-backend"
     # The backend host or address
     host: "http://localhost:8080"
+    # (Optional) If true will pass all requests headers to backend, default=false
+    passHeaders: true
     # (Optional) The authentication scopes required for every route in this backend
     scopes:
       - "ping-backend-scope"
@@ -63,6 +65,9 @@ backends:
         # (Optional) If this route is public. Public routes do not require a Authorization header to
         # be acessed
         isPublic: false
+        # (Optional) If true will pass all requests headers to backend, this is overrided by the
+        # "backend.passHeaders", default=false
+        passHeaders: true
         # (Optional) The authentication scopes required for this route, they will be stacked with the
         # backend scopes
         scopes:
